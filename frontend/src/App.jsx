@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import axios from 'axios';
 import { MapComponent } from './components/MapComponent';
@@ -6,8 +7,9 @@ import ChatBot from './components/ChatBot';
 import StreetViewModal from './components/StreetViewModal';
 import ARView from './components/ARView';
 import { ShieldAlert } from 'lucide-react';
+import HomePage from './pages/HomePage';
 
-function App() {
+function Dashboard() {
     const [selectedPlot, setSelectedPlot] = useState(null);
     const [selectedFeature, setSelectedFeature] = useState(null); // Store full feature (geometry)
     const [showStreetView, setShowStreetView] = useState(false);
@@ -74,7 +76,7 @@ function App() {
     };
 
     return (
-        <div className="app-container">
+        <div className="dashboard-container">
             {/* Sidebar */}
             <div className="sidebar">
                 <div className="header">
@@ -185,6 +187,17 @@ function App() {
                 plot={selectedPlot}
             />
         </div>
+    );
+}
+
+function App() {
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+            </Routes>
+        </Router>
     );
 }
 
