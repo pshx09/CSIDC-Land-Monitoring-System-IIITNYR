@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import axios from 'axios';
-import { MapComponent } from './components/MapComponent';
+import MapComponent from './components/MapComponent';
 import ChatBot from './components/ChatBot';
 import StreetViewModal from './components/StreetViewModal';
 import ARView from './components/ARView';
@@ -80,7 +80,7 @@ function Dashboard() {
             {/* Sidebar */}
             <div className="sidebar">
                 <div className="header">
-                    <h1>
+                    <h1 style={{ background: 'linear-gradient(135deg, #60a5fa, #fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                         <span style={{ fontSize: '2rem' }}>🛰️</span>
                         CSIDC Smart-Eye
                     </h1>
@@ -88,72 +88,79 @@ function Dashboard() {
                 </div>
 
                 {/* Live Status Card */}
-                <div className="card status-card">
+                <div className="card status-card" style={{ background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05))', borderLeft: '4px solid #22c55e' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                        <div style={{ width: 10, height: 10, background: '#22c55e', borderRadius: '50%', boxShadow: '0 0 5px #22c55e' }}></div>
-                        <h3>SYSTEM ONLINE</h3>
+                        <div style={{ width: 12, height: 12, background: '#22c55e', borderRadius: '50%', boxShadow: '0 0 8px #22c55e', animation: 'pulse 2s infinite' }}></div>
+                        <h3 style={{ margin: 0, color: '#22c55e', fontWeight: 'bold' }}>SYSTEM ONLINE</h3>
                     </div>
 
                     <div className="stat-row">
                         <span>Detected Encroachments:</span>
-                        <span style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 'bold' }}>
                             <ShieldAlert size={16} /> 1 Critical
                         </span>
                     </div>
                 </div>
 
                 {/* Chat Interface */}
-                <h3 style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '0.5rem' }}>AI LEGAL ASSISTANT</h3>
-                <ChatBot contextPlot={selectedPlot} />
+                <h3 style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>💬 AI Legal Assistant</h3>
+                <div style={{ flex: '0 1 200px', marginBottom: '1rem' }}>
+                    <ChatBot contextPlot={selectedPlot} />
+                </div>
 
                 {/* Sentinel Controls */}
-                <div className="card" style={{ marginTop: '1rem' }}>
-                    <h3 style={{ fontSize: '0.9rem', marginBottom: '10px' }}>🛰️ SENTINEL LAYER</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                        <label style={{ fontSize: '0.8rem' }}>Start Date:</label>
+                <div className="card" style={{ marginTop: '1rem', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05))', borderLeft: '4px solid #3b82f6' }}>
+                    <h3 style={{ fontSize: '0.9rem', marginBottom: '10px', color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>🛰️ Sentinel Layer</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '0.8rem', fontWeight: '500', color: '#cbd5e1' }}>📅 Start Date:</label>
                         <input
                             type="date"
                             value={sentinelDate.start}
                             onChange={(e) => setSentinelDate(prev => ({ ...prev, start: e.target.value }))}
-                            style={{ padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
+                            style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #475569', background: '#1e293b', color: '#f8fafc', fontSize: '0.9rem', cursor: 'pointer' }}
                         />
-                        <label style={{ fontSize: '0.8rem' }}>End Date:</label>
+                        <label style={{ fontSize: '0.8rem', fontWeight: '500', color: '#cbd5e1' }}>📅 End Date:</label>
                         <input
                             type="date"
                             value={sentinelDate.end}
                             onChange={(e) => setSentinelDate(prev => ({ ...prev, end: e.target.value }))}
-                            style={{ padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
+                            style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #475569', background: '#1e293b', color: '#f8fafc', fontSize: '0.9rem', cursor: 'pointer' }}
                         />
 
                         <button
                             onClick={runAnalysis}
                             disabled={analyzing}
                             style={{
-                                marginTop: '10px',
-                                padding: '8px',
-                                background: analyzing ? '#94a3b8' : '#3b82f6',
+                                marginTop: '12px',
+                                padding: '10px 14px',
+                                background: analyzing ? '#64748b' : 'linear-gradient(135deg, #3b82f6, #2563eb)',
                                 color: 'white',
                                 border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontWeight: 'bold'
+                                borderRadius: '6px',
+                                cursor: analyzing ? 'not-allowed' : 'pointer',
+                                fontWeight: 'bold',
+                                fontSize: '0.9rem',
+                                transition: 'all 0.3s',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em'
                             }}
                         >
-                            {analyzing ? "Analyzing..." : "🔍 Run NDBI Analysis"}
+                            {analyzing ? "⏳ Analyzing..." : "🔍 Run Analysis"}
                         </button>
 
                         {analysisResult && (
                             <div className="analysis-result" style={{
-                                marginTop: '10px',
-                                padding: '10px',
-                                background: '#f1f5f9',
-                                borderRadius: '4px',
-                                fontSize: '0.85rem'
+                                marginTop: '12px',
+                                padding: '12px',
+                                background: 'linear-gradient(135deg, rgba(241, 245, 249, 0.05), rgba(100, 116, 139, 0.05))',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                border: '1px solid #475569'
                             }}>
-                                <p style={{ margin: '5px 0' }}>🏗️ Built-up: <strong>+{analysisResult.builtup_increase_percent}%</strong></p>
-                                <p style={{ margin: '5px 0' }}>🌱 Veg Loss: <strong style={{ color: '#ef4444' }}>{analysisResult.vegetation_loss_percent}%</strong></p>
-                                <p style={{ margin: '5px 0', fontWeight: 'bold' }}>Status: {analysisResult.status}</p>
-                                <p style={{ fontSize: '0.75rem', opacity: 0.8 }}>{analysisResult.details}</p>
+                                <p style={{ margin: '6px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>🏗️ Built-up:</span> <strong style={{ color: '#fbbf24' }}>+{analysisResult.builtup_increase_percent}%</strong></p>
+                                <p style={{ margin: '6px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>🌱 Veg Loss:</span> <strong style={{ color: '#ef4444' }}>{analysisResult.vegetation_loss_percent}%</strong></p>
+                                <p style={{ margin: '6px 0', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>✓ Status:</span> <span style={{ color: '#22c55e' }}>{analysisResult.status}</span></p>
+                                <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #475569' }}>{analysisResult.details}</p>
                             </div>
                         )}
                     </div>

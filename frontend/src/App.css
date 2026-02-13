@@ -39,6 +39,9 @@ body {
     padding: 1.5rem;
     box-shadow: 4px 0 10px rgba(0, 0, 0, 0.3);
     z-index: 1000;
+    overflow-y: auto;
+    overflow-x: hidden;
+    gap: 0;
 }
 
 .map-container {
@@ -48,9 +51,10 @@ body {
 }
 
 .header {
-    border-bottom: 1px solid var(--secondary);
+    border-bottom: 2px solid rgba(96, 165, 250, 0.2);
     padding-bottom: 1rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
 }
 
 .header h1 {
@@ -69,12 +73,20 @@ body {
     padding: 1rem;
     margin-bottom: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.card:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .status-card h3 {
     margin-top: 0;
     font-size: 1rem;
     color: #94a3b8;
+    flex-shrink: 0;
 }
 
 .stat-row {
@@ -227,4 +239,49 @@ body {
 .btn-ar {
     background: #8b5cf6;
     color: white;
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Enhanced Sidebar */
+.sidebar {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05), 4px 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+/* Section Headers */
+.sidebar > h3 {
+    flex-shrink: 0;
+    margin: 0.5rem 0 0.5rem 0;
+}
+
+/* Chat Container */
+.sidebar > div > .chat-container {
+    max-height: 200px;
+    flex-shrink: 0;
 }
