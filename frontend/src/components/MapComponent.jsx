@@ -48,8 +48,18 @@ const MapComponent = ({ onPlotSelect, onOpenStreetView, onOpenAR, sentinelDate }
     }, []);
 
     const onEachFeature = (feature, layer) => {
-        let color = feature.properties.status === 'Encroachment Detected' ? '#ef4444' : '#22c55e';
-        layer.setStyle({ color, weight: 2, fillOpacity: 0.4 });
+        const status = feature.properties.Status;
+        let color = '#3388ff'; // Default blue
+
+        if (status === 'Allocated') {
+            color = '#e32b2d'; // Red
+        } else if (status && status.includes('Allocated/Partially Constructed')) {
+            color = '#33a02c'; // Green
+        } else if (status === 'Closed') {
+            color = '#b2df8a'; // Light Blue (Light Green hex actually, but per request)
+        }
+
+        layer.setStyle({ color, weight: 2, fillOpacity: 0.6, fillColor: color });
 
         layer.on('click', () => {
             onPlotSelect(feature);
@@ -58,9 +68,9 @@ const MapComponent = ({ onPlotSelect, onOpenStreetView, onOpenAR, sentinelDate }
         // Create HTML Content for Popup
         const content = `
             <div class="popup-content">
-                <h3>Plot ${feature.properties.plot_no || 'N/A'}</h3>
-                <p><b>Owner:</b> ${feature.properties.owner || 'Unknown'}</p>
-                <p><b>Status:</b> ${feature.properties.status}</p>
+                <h3>Plot ${feature.properties.Plot_Id || 'N/A'}</h3>
+                <p><b>Owner:</b> ${feature.properties.Owner || 'Unknown'}</p>
+                <p><b>Status:</b> ${status || 'Unknown'}</p>
                 <button class="popup-btn btn-street">🌍 Street View</button>
                 <button class="popup-btn btn-ar">📱 AR View</button>
             </div>
@@ -69,9 +79,12 @@ const MapComponent = ({ onPlotSelect, onOpenStreetView, onOpenAR, sentinelDate }
     };
 
     return (
-        <MapContainer center={[21.2844, 81.7213]} zoom={15} style={{ height: '100%', width: '100%' }}>
+        <MapContainer center={[21.2845, 81.7212]} zoom={17} style={{ height: '100%', width: '100%' }} id="map">
             <LayersControl position="topright">
-                <BaseLayer checked name="Google Satellite">
+                <BaseLayer checked name="OpenStreetMap">
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="OpenStreetMap" />
+                </BaseLayer>
+                <BaseLayer name="Google Satellite">
                     <TileLayer url="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}" attribution="Google" />
                 </BaseLayer>
                 <BaseLayer name="ISRO Bhuvan Satellite">
