@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+geopandas
+rasterio
+google-generativeai
+python-dotenv
+python-multipart
+shapely
+requests
+numpy

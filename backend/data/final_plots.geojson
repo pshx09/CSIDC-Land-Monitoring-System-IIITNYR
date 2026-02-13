@@ -1,0 +1,358 @@
+{
+    "type": "FeatureCollection",
+    "name": "final_plots",
+    "crs": {
+        "type": "name",
+        "properties": {
+            "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+        }
+    },
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "fid": 1,
+                "plot_no": "11",
+                "owner": "Gooday Products Pvt Ltd",
+                "status": "Allocated",
+                "lease_type": "Long-term Lease",
+                "use_type": "Food Processing"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            81.721708757325118,
+                            21.284885096540005
+                        ],
+                        [
+                            81.722249620051358,
+                            21.284936785645726
+                        ],
+                        [
+                            81.72208518193311,
+                            21.284017455268021
+                        ],
+                        [
+                            81.721549643828979,
+                            21.284107712630469
+                        ],
+                        [
+                            81.721708757325118,
+                            21.284885096540005
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "fid": 2,
+                "plot_no": "12",
+                "owner": "JAI BABA INDUSTRIES\n",
+                "status": "Allocated",
+                "lease_type": "99 Years",
+                "use_type": "Food Processing"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            81.722254428185423,
+                            21.284942255825829
+                        ],
+                        [
+                            81.722526676183165,
+                            21.285027904642348
+                        ],
+                        [
+                            81.72259540168217,
+                            21.284716012744404
+                        ],
+                        [
+                            81.722578334469262,
+                            21.284461222831684
+                        ],
+                        [
+                            81.722167195246584,
+                            21.284462505048911
+                        ],
+                        [
+                            81.722254428185423,
+                            21.284942255825829
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "fid": 3,
+                "plot_no": "13",
+                "owner": "JAI SHANKAR INDUSTRIES\n",
+                "status": "Allocated",
+                "lease_type": "99 Years",
+                "use_type": "Food Processing"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            81.722166774465094,
+                            21.284460646802614
+                        ],
+                        [
+                            81.722585499907026,
+                            21.284457199695286
+                        ],
+                        [
+                            81.722634643215926,
+                            21.283927874499671
+                        ],
+                        [
+                            81.72209041729532,
+                            21.284015362401231
+                        ],
+                        [
+                            81.722166774465094,
+                            21.284460646802614
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "fid": 4,
+                "plot_no": "10",
+                "owner": "BeSide Gooday",
+                "status": "Allocated",
+                "lease_type": "Long-term Lease",
+                "use_type": "Food Processing"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            81.72117071380697,
+                            21.284827930866822
+                        ],
+                        [
+                            81.721703397381432,
+                            21.284880177998044
+                        ],
+                        [
+                            81.721540895083535,
+                            21.284113276208831
+                        ],
+                        [
+                            81.721041793362701,
+                            21.284196713231534
+                        ],
+                        [
+                            81.72117071380697,
+                            21.284827930866822
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "fid": 5,
+                "plot_no": "5",
+                "owner": "Test Encroacher Ltd",
+                "status": "Allocated",
+                "lease_type": null,
+                "use_type": null
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            81.721338304768366,
+                            21.283993311979732
+                        ],
+                        [
+                            81.72176484002425,
+                            21.283921515911054
+                        ],
+                        [
+                            81.72168228481344,
+                            21.283592022789275
+                        ],
+                        [
+                            81.721273636519868,
+                            21.283640741663117
+                        ],
+                        [
+                            81.721338304768366,
+                            21.283993311979732
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "fid": 6,
+                "plot_no": "27",
+                "owner": "Kwality Foundry Industries\n",
+                "status": "Allocated",
+                "lease_type": "99 Years",
+                "use_type": "Food Processing"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            81.723104363498223,
+                            21.28421379735649
+                        ],
+                        [
+                            81.724096713542167,
+                            21.284028000445325
+                        ],
+                        [
+                            81.723884573598482,
+                            21.282996232627198
+                        ],
+                        [
+                            81.722887135572009,
+                            21.283170708927805
+                        ],
+                        [
+                            81.723104363498223,
+                            21.28421379735649
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "fid": 7,
+                "plot_no": "17",
+                "owner": "Test Vacant_1",
+                "status": "Vacant",
+                "lease_type": null,
+                "use_type": "Land Bank"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            81.724109784242543,
+                            21.284028367397745
+                        ],
+                        [
+                            81.724401084637037,
+                            21.283977834927391
+                        ],
+                        [
+                            81.724295953838237,
+                            21.283247867685205
+                        ],
+                        [
+                            81.723955283068705,
+                            21.283318208630263
+                        ],
+                        [
+                            81.724109784242543,
+                            21.284028367397745
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "fid": 8,
+                "plot_no": "24",
+                "owner": "Test Encroacher2 Pvt Ltd",
+                "status": "Allocated",
+                "lease_type": null,
+                "use_type": null
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            81.725473705387103,
+                            21.286781635707477
+                        ],
+                        [
+                            81.725294736970085,
+                            21.285815238058763
+                        ],
+                        [
+                            81.72481820660667,
+                            21.285919713786413
+                        ],
+                        [
+                            81.72491955016811,
+                            21.286428027325339
+                        ],
+                        [
+                            81.725473705387103,
+                            21.286781635707477
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "fid": 9,
+                "plot_no": "Vacant1",
+                "owner": "Test Vacant 1",
+                "status": "Vacant",
+                "lease_type": null,
+                "use_type": "Land Bank"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            81.720686283630044,
+                            21.284752281969034
+                        ],
+                        [
+                            81.721707469332941,
+                            21.284953745508304
+                        ],
+                        [
+                            81.721920354951777,
+                            21.285613924095387
+                        ],
+                        [
+                            81.721504562727461,
+                            21.28613152683047
+                        ],
+                        [
+                            81.720686283630044,
+                            21.284752281969034
+                        ]
+                    ]
+                ]
+            }
+        }
+    ]
+}
