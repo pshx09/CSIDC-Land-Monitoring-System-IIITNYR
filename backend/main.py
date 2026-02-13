@@ -13,7 +13,10 @@ import numpy as np
 import io
 import rasterio
 import warnings
-from typing import Optional
+from typing import Optional, Dict, Any
+from sentinel_utils import perform_advanced_analysis
+from encroachment_utils import analyze_encroachment
+
 
 # Suppress warnings from google.generativeai about deprecation
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -27,7 +30,13 @@ app = FastAPI()
 # Enable connection to React Frontend (Port 5173)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -182,6 +191,10 @@ class AnalysisRequest(BaseModel):
     start_date: str
     end_date: str
     geometry: Optional[dict] = None
+
+class EncroachmentRequest(BaseModel):
+    geometry: dict
+
 
 # --- Endpoints ---
 
@@ -354,6 +367,49 @@ def sentinel_ndbi_analysis(request: AnalysisRequest):
         }
     except Exception as e:
         print(f"Analysis error: {e}")
+        return {"error": str(e)}
+
+@app.post("/api/sentinel/advanced-analysis")
+def sentinel_advanced_analysis_endpoint(request: AnalysisRequest):
+    try:
+        # Validate inputs
+        if not request.geometry:
+            return {"error": "Geometry is required for advanced analysis"}
+        
+        # Determine if we have a Feature or Geometry
+        geom = request.geometry
+        if geom.get("type") == "Feature":
+            geom = geom.get("geometry")
+        
+        # Run analysis
+        result = perform_advanced_analysis(geom, request.start_date, request.end_date)
+        
+        if result is None:
+             return {"error": "Analysis returned no result (check logs)"}
+             
+        if "error" in result:
+             return result
+             
+        return result
+
+    except Exception as e:
+        print(f"Advanced Analysis Error: {e}")
+        return {"error": str(e)}
+
+@app.post("/api/analyze/encroachment")
+def analyze_encroachment_endpoint(request: EncroachmentRequest):
+    try:
+        # Validate geometry
+        if not request.geometry:
+             return {"error": "Geometry is required."}
+             
+        # Run analysis
+        # Pass the geometry dict directly
+        result = analyze_encroachment(request.geometry)
+        
+        return result
+    except Exception as e:
+        print(f"Encroachment Analysis Error: {e}")
         return {"error": str(e)}
 
 @app.post("/api/chat")

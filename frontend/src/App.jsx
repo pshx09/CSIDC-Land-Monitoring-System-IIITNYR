@@ -42,10 +42,10 @@ function Dashboard() {
 
             // If plot selected, use plot geometry.
             if (selectedFeature && selectedFeature.geometry) {
-                geometry = selectedFeature.geometry;
+                geometry = selectedFeature; // Send full feature or geometry
             }
 
-            const res = await axios.post('http://localhost:8000/api/sentinel/ndbi-analysis', {
+            const res = await axios.post('http://localhost:8000/api/sentinel/advanced-analysis', {
                 lat: targetLat,
                 lng: targetLng,
                 start_date: sentinelDate.start,
@@ -63,6 +63,39 @@ function Dashboard() {
             alert("Analysis failed.");
         }
         setAnalyzing(false);
+    };
+
+    const handleExportReport = () => {
+        if (!analysisResult) return;
+
+        const reportContent = `
+            CSIDC LAND MONITORING REPORT
+            ----------------------------
+            Date: ${new Date().toLocaleDateString()}
+            Plot ID: ${analysisResult.plot_id || 'N/A'}
+            Owner: ${selectedPlot?.Owner || 'N/A'}
+            
+            Analysis Period: ${sentinelDate.start} to ${sentinelDate.end}
+            
+            FINDINGS:
+            - Plot Area: ${analysisResult.area_sqm ? analysisResult.area_sqm.toLocaleString() : 'N/A'} sqm
+            - Vegetation Loss: ${analysisResult.vegetation_loss}%
+            - Built-up Increase: ${analysisResult.builtup_increase}%
+            
+            ENCROACHMENT STATUS: ${analysisResult.status}
+            - Encroachment Area: ${analysisResult.encroachment_area} sqm
+            
+            This is an auto-generated report based on Sentinel-2 satellite imagery analysis.
+        `;
+
+        const blob = new Blob([reportContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Report_Plot_${analysisResult.plot_id || 'Unk'}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     };
 
     // Handler passed to map
@@ -157,10 +190,27 @@ function Dashboard() {
                                 fontSize: '0.85rem',
                                 border: '1px solid #475569'
                             }}>
-                                <p style={{ margin: '6px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>🏗️ Built-up:</span> <strong style={{ color: '#fbbf24' }}>+{analysisResult.builtup_increase_percent}%</strong></p>
-                                <p style={{ margin: '6px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>🌱 Veg Loss:</span> <strong style={{ color: '#ef4444' }}>{analysisResult.vegetation_loss_percent}%</strong></p>
-                                <p style={{ margin: '6px 0', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>✓ Status:</span> <span style={{ color: '#22c55e' }}>{analysisResult.status}</span></p>
-                                <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #475569' }}>{analysisResult.details}</p>
+                                <p style={{ margin: '6px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>🏗️ Built-up:</span> <strong style={{ color: '#fbbf24' }}>+{analysisResult.builtup_increase}%</strong></p>
+                                <p style={{ margin: '6px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>🌱 Veg Loss:</span> <strong style={{ color: '#ef4444' }}>{analysisResult.vegetation_loss}%</strong></p>
+                                <p style={{ margin: '6px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>⚠️ Encroach:</span> <strong style={{ color: '#f87171' }}>{analysisResult.encroachment_area} sqm</strong></p>
+                                <p style={{ margin: '6px 0', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>✓ Status:</span> <span style={{ color: analysisResult.status.includes('Violation') ? '#ef4444' : '#22c55e' }}>{analysisResult.status}</span></p>
+
+                                <button
+                                    onClick={handleExportReport}
+                                    style={{
+                                        width: '100%',
+                                        marginTop: '8px',
+                                        padding: '6px',
+                                        background: '#334155',
+                                        color: '#e2e8f0',
+                                        border: '1px solid #475569',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '0.8rem'
+                                    }}
+                                >
+                                    📄 Export Report
+                                </button>
                             </div>
                         )}
                     </div>

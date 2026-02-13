@@ -8,3 +8,7 @@ python-multipart
 shapely
 requests
 numpy
+ultralytics
+opencv-python
+pillow
+pyproj
