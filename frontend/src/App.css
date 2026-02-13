@@ -14,14 +14,20 @@ body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--bg-dark);
     color: var(--text-light);
-    overflow: hidden;
-    /* Prevent body scroll */
+    /* Allow scrolling by default */
 }
 
 .app-container {
     display: flex;
+    width: 100%;
+    min-height: 100vh;
+}
+
+.dashboard-container {
+    display: flex;
     height: 100vh;
     width: 100vw;
+    overflow: hidden;
 }
 
 .sidebar {
