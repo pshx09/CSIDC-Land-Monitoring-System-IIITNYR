@@ -1,45 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, GeoJSON, LayersControl, useMap, WMSTileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import axios from 'axios';
-import { Map as MapIcon, Eye, Smartphone } from 'lucide-react';
 
-const { BaseLayer, Overlay } = LayersControl;
-
-// Helper to attach event listeners to popups dynamically
-const PopupLogic = ({ onOpenStreetView, onOpenAR }) => {
-    const map = useMap();
-
-    useEffect(() => {
-        map.on('popupopen', (e) => {
-            const popupNode = e.popup._contentNode;
-
-            // Find buttons
-            const btnSv = popupNode.querySelector('.btn-street');
-            const btnAr = popupNode.querySelector('.btn-ar');
-
-            if (btnSv) {
-                btnSv.onclick = () => {
-                    // Extract latlng from popup source
-                    // For polygons, latlng might be the click point or center.
-                    // Leaflet's e.popup._latlng is usually where the popup opened.
-                    const latlng = e.popup._latlng;
-                    onOpenStreetView(latlng.lat, latlng.lng);
-                }
-            }
-            if (btnAr) {
-                btnAr.onclick = () => {
-                    onOpenAR();
-                }
-            }
-        });
-    }, [map, onOpenStreetView, onOpenAR]);
-
-    return null;
-}
-
-const MapComponent = ({ onPlotSelect, onOpenStreetView, onOpenAR, sentinelDate }) => {
+const { BaseLayer, Overlay } = LayersControl;const MapComponent = ({ onPlotSelect, sentinelDate, selectedFeature }) => {
     const [plots, setPlots] = useState(null);
+    const layersRef = useRef({});
 
     useEffect(() => {
         axios.get('http://localhost:8000/api/plots')
@@ -47,35 +13,96 @@ const MapComponent = ({ onPlotSelect, onOpenStreetView, onOpenAR, sentinelDate }
             .catch(err => console.error(err));
     }, []);
 
+    // Update styling when selectedFeature changes
+    useEffect(() => {
+        Object.keys(layersRef.current).forEach(key => {
+            const layer = layersRef.current[key];
+            const feature = layer.feature;
+            const status = feature.properties.Status;
+            let color = '#3388ff';
+
+            if (status === 'Allocated') {
+                color = '#e32b2d';
+            } else if (status && status.includes('Allocated/Partially Constructed')) {
+                color = '#33a02c';
+            } else if (status === 'Closed') {
+                color = '#b2df8a';
+            }
+
+            // Darken if selected
+            if (selectedFeature && selectedFeature.properties.Plot_Id === feature.properties.Plot_Id) {
+                const darkColor = getDarkerColor(color);
+                layer.setStyle({ color: darkColor, weight: 3, fillOpacity: 0.8, fillColor: darkColor });
+            } else {
+                layer.setStyle({ color, weight: 2, fillOpacity: 0.6, fillColor: color });
+            }
+        });
+    }, [selectedFeature]);
+
+    const getDarkerColor = (color) => {
+        const num = parseInt(color.slice(1), 16);
+        const amt = 50;
+        const usePound = true;
+        const R = (num >> 16) - amt;
+        const G = (num >> 8 & 0x00FF) - amt;
+        const B = (num & 0x0000FF) - amt;
+        return (usePound ? "#" : "") + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 +
+            (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255))
+            .toString(16).slice(1);
+    };
+
     const onEachFeature = (feature, layer) => {
         const status = feature.properties.Status;
-        let color = '#3388ff'; // Default blue
+        let color = '#3388ff';
 
         if (status === 'Allocated') {
-            color = '#e32b2d'; // Red
+            color = '#e32b2d';
         } else if (status && status.includes('Allocated/Partially Constructed')) {
-            color = '#33a02c'; // Green
+            color = '#33a02c';
         } else if (status === 'Closed') {
-            color = '#b2df8a'; // Light Blue (Light Green hex actually, but per request)
+            color = '#b2df8a';
         }
 
         layer.setStyle({ color, weight: 2, fillOpacity: 0.6, fillColor: color });
+        layer.feature = feature;
+
+        // Create popup content
+        const popupContent = `
+            <div class="popup-content">
+                <div class="popup-header">
+                    <h3>Plot ${feature.properties.Plot_Id || 'N/A'}</h3>
+                </div>
+                <div class="popup-body">
+                    <div class="popup-row">
+                        <span class="popup-label">Owner:</span>
+                        <span class="popup-val">${feature.properties.Owner || 'Unknown'}</span>
+                    </div>
+                    <div class="popup-row">
+                        <span class="popup-label">Status:</span>
+                        <span class="popup-val">${status || 'Unknown'}</span>
+                    </div>
+                    <div class="popup-row">
+                        <span class="popup-label">Use Type:</span>
+                        <span class="popup-val">${feature.properties.Use_Type || 'N/A'}</span>
+                    </div>
+                    ${feature.properties['Area (sq.m)'] ? `
+                    <div class="popup-row">
+                        <span class="popup-label">Area:</span>
+                        <span class="popup-val">${feature.properties['Area (sq.m)'].toLocaleString()} sqm</span>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+
+        layer.bindPopup(popupContent);
+
+        // Store layer reference using ref
+        layersRef.current[feature.properties.Plot_Id] = layer;
 
         layer.on('click', () => {
             onPlotSelect(feature);
         });
-
-        // Create HTML Content for Popup
-        const content = `
-            <div class="popup-content">
-                <h3>Plot ${feature.properties.Plot_Id || 'N/A'}</h3>
-                <p><b>Owner:</b> ${feature.properties.Owner || 'Unknown'}</p>
-                <p><b>Status:</b> ${status || 'Unknown'}</p>
-                <button class="popup-btn btn-street">🌍 Street View</button>
-                <button class="popup-btn btn-ar">📱 AR View</button>
-            </div>
-        `;
-        layer.bindPopup(content);
     };
 
     return (
@@ -117,7 +144,6 @@ const MapComponent = ({ onPlotSelect, onOpenStreetView, onOpenAR, sentinelDate }
             </LayersControl>
 
             {plots && <GeoJSON data={plots} onEachFeature={onEachFeature} />}
-            <PopupLogic onOpenStreetView={onOpenStreetView} onOpenAR={onOpenAR} />
         </MapContainer>
     );
 };
