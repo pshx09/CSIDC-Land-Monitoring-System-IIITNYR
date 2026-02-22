@@ -112,14 +112,17 @@ def fetch_multiband_image(token, bbox, time_range):
         transform = src.transform
         return img, transform
 
-def perform_advanced_analysis(plot_geometry, start_date, end_date):
+def perform_advanced_analysis(plot_geometry, start_date, end_date, allocated_area_sqm=None):
     """
     Performs change detection on Plot Logic and Encroachment Logic.
     plot_geometry: GeoJSON dict (WGS84)
+    allocated_area_sqm: Pre-calculated allocated area in square meters (for sync with frontend)
     """
     token = get_sentinel_token()
     if not token:
         return {"error": "Sentinel OAuth failed"}
+    
+    print(f"DEBUG: Analysis called with dates {start_date} to {end_date}, allocated_area_sqm={allocated_area_sqm}")
 
     # 1. Prepare Geometry and Buffer
     # Convert GeoJSON to Shapely
@@ -201,50 +204,82 @@ def perform_advanced_analysis(plot_geometry, start_date, end_date):
     # Combined Valid Mask (valid in both dates)
     valid_mask = (s_mask == 1) & (e_mask == 1)
     
-    # 5. Analyze INSIDE Plot (Vegetation Loss)
+    # 5. Analyze INSIDE Plot (Vegetation Loss and Built-up Area)
     # Filter by Plot Mask AND Valid Data
     plot_pixels = (mask_plot == 1) & valid_mask
+    
+    # Use allocated_area_sqm from frontend if provided, otherwise calculate from pixels
+    if allocated_area_sqm and allocated_area_sqm > 0:
+        total_plot_area_sqm = allocated_area_sqm
+        print(f"DEBUG: Using frontend allocated area: {total_plot_area_sqm} sqm")
+    else:
+        total_plot_area_sqm = int(np.sum(mask_plot) * 100)  # 1 pixel = 10m x 10m = 100 sqm
+        print(f"DEBUG: Calculated area from pixels: {total_plot_area_sqm} sqm")
     
     if np.sum(plot_pixels) == 0:
         veg_loss_pct = 0
         builtup_inc_pct = 0
+        builtup_area_sqm = 0
+        print(f"DEBUG: No valid plot pixels found!")
     else:
-        # Vegetation Loss: ROI where Start NDVI > 0.3 AND (Start - End) > 0.1
-        # Or simply Mean NDVI change
-        s_mean_ndvi = np.mean(s_ndvi[plot_pixels])
-        e_mean_ndvi = np.mean(e_ndvi[plot_pixels])
+        # Vegetation Loss: percentage of pixels where NDVI significantly decreased
+        s_ndvi_plot = s_ndvi[plot_pixels]
+        e_ndvi_plot = e_ndvi[plot_pixels]
+        veg_loss_pixels = np.sum((s_ndvi_plot - e_ndvi_plot) > 0.1)
+        veg_loss_pct = (veg_loss_pixels / np.sum(plot_pixels)) * 100 if np.sum(plot_pixels) > 0 else 0
         
-        # Loss % relative to start? Or raw drop? 
-        # User requested "Vegetation Loss %". 
-        # Let's do % drop in Mean NDVI, or % of area that lost vegetation.
-        # Let's do % drop in mean NDVI for now, clamped to 0-100.
-        veg_change = s_mean_ndvi - e_mean_ndvi
-        veg_loss_pct = max(0, veg_change * 100) # Rough scale
+        # Built-up Area Inside Plot (NDBI-based)
+        # NDBI > 0.1 indicates built-up structures
+        e_ndbi_plot = e_ndbi[plot_pixels]
+        built_up_pixels = np.sum(e_ndbi_plot > 0.1)
+        builtup_area_sqm = int(built_up_pixels * 100)  # 1 pixel = 10m x 10m = 100 sqm
         
-        # Built-up Increase Inside Loop
-        s_mean_ndbi = np.mean(s_ndbi[plot_pixels])
-        e_mean_ndbi = np.mean(e_ndbi[plot_pixels])
-        builtup_inc_pct = max(0, (e_mean_ndbi - s_mean_ndbi) * 100)
+        # Built-up percentage of total plot area
+        if total_plot_area_sqm > 0:
+            builtup_inc_pct = (builtup_area_sqm / total_plot_area_sqm) * 100
+        else:
+            builtup_inc_pct = 0
+        
+        print(f"DEBUG: Veg loss pixels={veg_loss_pixels}, Built-up pixels={built_up_pixels}, Built-up area={builtup_area_sqm} sqm, Built-up %={builtup_inc_pct:.2f}%")
 
     # 6. Analyze OUTSIDE Plot (Encroachment)
     # Filter by Encroachment Mask AND Valid Data
     enc_pixels = (mask_encroachment == 1) & valid_mask
     
+    print(f"DEBUG ENCROACHMENT: mask_encroachment pixels = {np.sum(mask_encroachment)}, valid enc_pixels = {np.sum(enc_pixels)}")
+    
     encroachment_size_sqm = 0
+    encroachment_pct = 0
     status = "Compliant"
+    buffer_area_sqm = int(np.sum(mask_encroachment) * 100)
     
     if np.sum(enc_pixels) > 0:
         # Violation: If NDBI increased significantly in the buffer zone.
         # Or if NDBI in buffer is High (> 0, typically built-up) and wasn't before?
         # Let's look for pixels where NDBI increased by > 0.1 AND End NDBI > -0.1 (is built-up)
         
-        # Define "New Built-up" pixels
+        # Define "New Built-up" pixels - more relaxed criteria
+        # Approach: Either NEW construction (high NDBI increase) OR end-of-period has high NDBI and wasn't before
         diff_ndbi = e_ndbi - s_ndbi
-        new_build_mask = (diff_ndbi > 0.15) & (e_ndbi > -0.05) & enc_pixels
+        
+        # Criterion 1: New construction (NDBI increased significantly)
+        new_construction = (diff_ndbi > 0.1) & (e_ndbi > 0.0) & enc_pixels
+        
+        # Criterion 2: Already built-up (high end NDBI, was not built before)
+        already_built = (e_ndbi > 0.1) & (s_ndbi < 0.0) & enc_pixels
+        
+        # Combine both: New construction OR existing structures in buffer
+        new_build_mask = new_construction | already_built
         
         pixel_count = np.sum(new_build_mask)
+        print(f"DEBUG ENCROACHMENT: New construction pixels = {np.sum(new_construction)}, Already built = {np.sum(already_built)}, Total = {pixel_count}")
         # 1 pixel ~ 10m x 10m = 100 sqm
         encroachment_size_sqm = int(pixel_count * 100)
+        print(f"DEBUG ENCROACHMENT: Buffer area = {buffer_area_sqm} sqm, Encroachment = {encroachment_size_sqm} sqm")
+        
+        # Calculate encroachment percentage relative to plot area (for consistency with frontend)
+        if total_plot_area_sqm > 0:
+            encroachment_pct = (encroachment_size_sqm / total_plot_area_sqm) * 100
         
         if encroachment_size_sqm > 200: # Threshold: 200 sqm
             status = "Violation"
@@ -253,13 +288,15 @@ def perform_advanced_analysis(plot_geometry, start_date, end_date):
     if veg_loss_pct > 15: # Threshold
          status = "Environmental Alert" if status == "Compliant" else status + " + Env Alert"
 
+    print(f"DEBUG FINAL: Returning area={total_plot_area_sqm}, builtup={builtup_area_sqm}, encroachment={encroachment_size_sqm}")
+    
     return {
-        "area_sqm": int(geom_shape.area * 111000 * 111000), # Rough degrees to meters
+        "area_sqm": int(total_plot_area_sqm),  # Use the consistent area (from frontend or calculated from pixels)
         "vegetation_loss": float(round(veg_loss_pct, 2)),
-        "builtup_increase": float(round(builtup_inc_pct, 2)),
+        "builtup_increase": float(round(builtup_inc_pct, 2)),  # Percentage of plot area
+        "builtup_area_sqm": int(builtup_area_sqm),  # Built-up area in square meters
         "encroachment_area": int(encroachment_size_sqm),
+        "encroachment_percent": float(round(encroachment_pct, 2)),  # Encroachment as % of plot area
         "status": status,
-        "plot_id": plot_geometry.get("properties", {}).get("plot_no", "Unknown") 
-        # Note: plot_geometry passsed might not have properties if not selected from FeatureCollection properly,
-        # but we handle what we get.
+        "plot_id": plot_geometry.get("properties", {}).get("plot_no", "Unknown")
     }

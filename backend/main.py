@@ -191,6 +191,7 @@ class AnalysisRequest(BaseModel):
     start_date: str
     end_date: str
     geometry: Optional[dict] = None
+    allocated_area_sqm: Optional[int] = None
 
 class EncroachmentRequest(BaseModel):
     geometry: dict
@@ -381,8 +382,8 @@ def sentinel_advanced_analysis_endpoint(request: AnalysisRequest):
         if geom.get("type") == "Feature":
             geom = geom.get("geometry")
         
-        # Run analysis
-        result = perform_advanced_analysis(geom, request.start_date, request.end_date)
+        # Run analysis with allocated area
+        result = perform_advanced_analysis(geom, request.start_date, request.end_date, request.allocated_area_sqm)
         
         if result is None:
              return {"error": "Analysis returned no result (check logs)"}
@@ -423,13 +424,25 @@ def chat_with_ai(request: ChatRequest):
         You are 'Nagarik Sahayak', an AI legal officer for CSIDC (Chhattisgarh State Industrial Development Corporation).
         Your job is to assist officers in monitoring industrial plots and drafting legal notices.
         
+        CONTEXT PROVIDED:
+        - Plot No (if available)
+        - Company/Industry Name (if available)
+        - Owner Name (if available)
+        - Plot Status and Details (if available)
+        
         RULES:
-        1. If specific plot details are provided in 'Context', use them.
-        2. If the status is 'Encroachment Detected', be firm and cite legal codes.
-        3. If asked to 'Draft Notice', output a formal legal notice under "Section 24 of CG Land Revenue Code".
-           - Include placeholders for Date, Ref No, and Officer Signature if not provided.
-           - Mention the specific Plot No and Owner Name from context.
-        4. Keep answers professional, concise, and legally sounded.
+        1. Keep responses SHORT and CONCISE - aim for 2-3 sentences for general questions, brief paragraphs for notices.
+        2. If specific plot details are provided in 'Context', use them directly in responses and notices.
+        3. If user asks to 'Draft Notice' or requests a notice with plot details, generate a formal legal notice under "Section 24 of CG Land Revenue Code".
+        4. For legal notices:
+           - Include Date (use [DATE] placeholder if not provided)
+           - Include Reference No (use [REF_NO] placeholder if not provided)
+           - Include Officer Signature line (use [OFFICER_SIGNATURE] placeholder if not provided)
+           - Mention the specific Plot No, Company/Industry Name, and Owner Name from the context provided.
+           - Use formal legal language appropriate for CSIDC compliance notices.
+        5. If the status is 'Encroachment Detected', be firm and cite relevant legal codes in the notice.
+        6. Be professional, concise, and legally sound. Maintain the tone of a helpful legal assistant.
+        7. Avoid unnecessary details or lengthy explanations - stick to essentials only.
         """
         
         model = genai.GenerativeModel('gemini-2.0-flash')

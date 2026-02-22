@@ -4,11 +4,18 @@ import axios from 'axios';
 
 const ChatBot = ({ contextPlot }) => {
     const [messages, setMessages] = useState([
-        { role: 'ai', text: "Hello! I am Nagarik Sahayak. Select a plot on the map to begin analysis or ask me to draft a notice." }
+        { role: 'ai', text: "Hi! How can I assist you today?" }
     ]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
+    const [copiedIndex, setCopiedIndex] = useState(null);
     const messagesEndRef = useRef(null);
+
+    const handleCopy = (text, index) => {
+        navigator.clipboard.writeText(text);
+        setCopiedIndex(index);
+        setTimeout(() => setCopiedIndex(null), 2000);
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -17,15 +24,6 @@ const ChatBot = ({ contextPlot }) => {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
-
-    useEffect(() => {
-        if (contextPlot) {
-            setMessages(prev => [...prev, {
-                role: 'ai',
-                text: `Creating context for Plot ${contextPlot.plot_no}. Owner: ${contextPlot.owner}. Status: ${contextPlot.status}. How can I assist?`
-            }]);
-        }
-    }, [contextPlot]);
 
     const handleSend = async () => {
         if (!input.trim()) return;
@@ -61,9 +59,22 @@ const ChatBot = ({ contextPlot }) => {
             <div className="card chat-messages">
                 {messages.map((msg, index) => (
                     <div key={index} className={`message ${msg.role}`}>
-                        {msg.role === 'ai' && <Bot size={16} style={{ marginRight: '8px', display: 'inline-block' }} />}
-                        {msg.role === 'user' && <User size={16} style={{ marginRight: '8px', display: 'inline-block' }} />}
-                        <span style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</span>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', width: '100%' }}>
+                            <div style={{ display: 'flex', marginTop: '4px' }}>
+                                {msg.role === 'ai' && <Bot size={16} />}
+                                {msg.role === 'user' && <User size={16} />}
+                            </div>
+                            <span style={{ whiteSpace: 'pre-wrap', flex: 1 }}>{msg.text}</span>
+                            {msg.role === 'ai' && (
+                                <button 
+                                    className="copy-btn"
+                                    onClick={() => handleCopy(msg.text, index)}
+                                    title="Copy message"
+                                >
+                                    {copiedIndex === index ? '✓' : '📋'}
+                                </button>
+                            )}
+                        </div>
                     </div>
                 ))}
                 {loading && <div className="message ai">Thinking...</div>}
